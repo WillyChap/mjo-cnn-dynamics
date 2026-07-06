@@ -1,0 +1,26 @@
+# Data: regenerated from source data on GLADE; never committed
+*.nc
+*.npz
+nc/
+NC_OUT/
+FIG_OUT/
+
+# Python caches
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+manuscript/manuscript.pdf
+
+# Editor / OS
+.DS_Store
