@@ -1,0 +1,20 @@
+Sensitivity of the moist-instability index to the theta_e formulation
+============================================================================
+source            : tq_subset.nc (CNN experiment)
+winters           : 11, 180-day seasons from 1 Nov
+domain for metrics: 40-180E, -20-20N
+
+I = theta_e(850 hPa) - theta_e(400 hPa), regressed on the standardized Indian Ocean
+precipitation index (K per index standard deviation).
+
+  first-order (manuscript Eq. A4) vs exact pseudo-adiabatic (Bolton 1980, Eqs. 15, 38)
+
+  centered pattern correlation of the two regressed maps : 0.9986
+  normalized centered RMSE (Bolton vs first-order)       : 0.0965
+  spatial sd, first-order                                : 0.3286 K per sd
+  spatial sd, Bolton                                     : 0.3548 K per sd
+  amplitude ratio (Bolton / first-order)                 : 1.0798
+
+VERDICT: the two formulations give the same regressed pattern to within a few percent;
+the manuscript's claim that the first-order form does not materially change the
+regressed patterns is supported.
