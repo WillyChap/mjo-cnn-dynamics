@@ -46,8 +46,20 @@ eastward displacement tendency             < 0
    jackknife   = [-1.437e-08, -1.238e-08]  sign stable: True
    block boot  = 90% CI [-2.007e-08, -9.924e-09]  (n=11 blocks; anticonservative)
 
-MJO circulation variance <|V'|^2> = 0.3054 m2 s-2 per (index sd)^2
-implied kinetic-energy e-folding amplification time = 6.6 days
+Kinetic-energy timescale
+------------------------------------------------------------------------------
+   <|V'|^2>                     = 0.3054 m2 s-2 per (index sd)^2
+   K = 0.5<|V'|^2>              = 0.1527 m2 s-2
+   dK/dt = <V'.dV> ('work')     = +0.0230 m2 s-2 day-1
+   tau = <|V'|^2> / (2<V'.dV>)  = 6.6 days   (KE e-folding)
+   2*tau                        = 13.3 days   (wind-amplitude e-folding)
+   jackknife on tau             = [6.1, 8.1] days
+   Caveat: tau is an e-folding time only if the increment acted alone and its
+   tendency stayed proportional to K. It is NOT a kinetic-energy budget: advection,
+   pressure work, buoyancy conversion, and dissipation are omitted. It is evaluated
+   on the regression composite (40-180E, 20S-20N, 700-1000 hPa, horizontal wind).
+   Read it as the order of magnitude of the increment's forcing of the composite MJO
+   circulation, not as a growth rate of the simulated MJO.
 
 Units: conv_E/conv_W in 1e-6 s^-1 day^-1; work in m2 s-2 day-1 per (index sd)^2;
 prop in m s-2 day-1 per (index sd)^2. Box means use the Gauss theorem on the box

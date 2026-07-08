@@ -131,10 +131,26 @@ def main():
     full = metrics(np.arange(NS))
     per = [metrics(np.array([k])) for k in range(NS)]
 
-    # KE amplification timescale
-    f = slopes(np.arange(NS))
-    ke = awmean(f["bu"] ** 2 + f["bv"] ** 2)
+    # ---- kinetic-energy timescale --------------------------------------------------
+    # K = 0.5 <|V'|^2> is the KE per unit mass of the COMPOSITE (index-regressed) MJO
+    # circulation. The increment contributes dK/dt = <V' . dV> = `work`. Hence
+    #     tau = K / (dK/dt) = <|V'|^2> / (2 <V' . dV>)
+    # This is an e-folding time for K only if the increment acted ALONE and its tendency
+    # stayed proportional to K. It is not a kinetic-energy budget: advection, pressure
+    # work, buoyancy conversion, and dissipation are all omitted, and it is evaluated on
+    # the regression composite over 40-180E/20S-20N, 700-1000 hPa, horizontal wind only.
+    # The corresponding e-folding time of the wind AMPLITUDE is 2*tau.
+    def ke_of(pick):
+        s = slopes(pick)
+        return awmean(s["bu"] ** 2 + s["bv"] ** 2)
+
+    ke = ke_of(np.arange(NS))
     tau = ke / full["work"] / 2.0 if full["work"] > 0 else np.nan
+    tau_jk = []
+    for i in range(NS):
+        p = np.delete(np.arange(NS), i)
+        m = metrics(p)
+        tau_jk.append(ke_of(p) / m["work"] / 2.0 if m["work"] > 0 else np.nan)
 
     rng = np.random.default_rng(0)
     boot = {k: np.empty(NBOOT) for k in full}
@@ -178,8 +194,20 @@ def main():
           f"{all(np.sign(v) == np.sign(full[key]) for v in jk)}")
         P(f"   block boot  = 90% CI [{lo:+.4g}, {hi:+.4g}]  (n=11 blocks; anticonservative)")
         P("")
-    P(f"MJO circulation variance <|V'|^2> = {ke:.4f} m2 s-2 per (index sd)^2")
-    P(f"implied kinetic-energy e-folding amplification time = {tau:.1f} days")
+    P("Kinetic-energy timescale")
+    P("-" * 78)
+    P(f"   <|V'|^2>                     = {ke:.4f} m2 s-2 per (index sd)^2")
+    P(f"   K = 0.5<|V'|^2>              = {ke/2:.4f} m2 s-2")
+    P(f"   dK/dt = <V'.dV> ('work')     = {full['work']:+.4f} m2 s-2 day-1")
+    P(f"   tau = <|V'|^2> / (2<V'.dV>)  = {tau:.1f} days   (KE e-folding)")
+    P(f"   2*tau                        = {2*tau:.1f} days   (wind-amplitude e-folding)")
+    P(f"   jackknife on tau             = [{np.nanmin(tau_jk):.1f}, {np.nanmax(tau_jk):.1f}] days")
+    P("   Caveat: tau is an e-folding time only if the increment acted alone and its")
+    P("   tendency stayed proportional to K. It is NOT a kinetic-energy budget: advection,")
+    P("   pressure work, buoyancy conversion, and dissipation are omitted. It is evaluated")
+    P("   on the regression composite (40-180E, 20S-20N, 700-1000 hPa, horizontal wind).")
+    P("   Read it as the order of magnitude of the increment's forcing of the composite MJO")
+    P("   circulation, not as a growth rate of the simulated MJO.")
     P("")
     P("Units: conv_E/conv_W in 1e-6 s^-1 day^-1; work in m2 s-2 day-1 per (index sd)^2;")
     P("prop in m s-2 day-1 per (index sd)^2. Box means use the Gauss theorem on the box")
