@@ -186,7 +186,8 @@ def build_panel(name, cfg):
     clevs = cfg["clevs"]
     used_field = None
     mappable = None
-    for ax, exp in zip(axes, EXPERIMENTS):
+    for i, (ax, exp) in enumerate(zip(axes, EXPERIMENTS)):
+        left_col = (i % 2 == 0)   # panels a,c carry the shared latitude axis; b,d drop it
         suffix = cfg["suffix_obs"] if exp["obs"] else cfg["suffix_model"]
         path = os.path.join(NCDIR, exp["dir"], f"{exp['modout']}.{suffix}")
         if not os.path.exists(path):
@@ -212,6 +213,8 @@ def build_panel(name, cfg):
         ax.xaxis.set_major_formatter(LongitudeFormatter(number_format=".0f"))
         ax.yaxis.set_major_formatter(LatitudeFormatter(number_format=".0f"))
         ax.tick_params(labelsize=14)
+        if not left_col:              # shared y-axis: suppress latitude labels on b,d
+            ax.set_yticklabels([])
         ax.set_extent(EXTENT, crs=proj)
         ax.text(0.985, 0.90, exp["label"], transform=ax.transAxes, ha="right",
                 va="top", fontsize=16,
