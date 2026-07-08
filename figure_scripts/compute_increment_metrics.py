@@ -6,14 +6,16 @@ Quantify what the CNN wind increment does to the MJO, with inference appropriate
 record of only 11 independent winters.
 
 WHY NOT A BLOCK BOOTSTRAP.  The regression composites use a 141-weight, 20-70 day Lanczos
-band-pass, which spreads information +/-70 days. Sub-season blocks are therefore not
-independent, and the only defensible block is a whole winter. With 11 blocks a percentile
-bootstrap has an effective sample size of 11 and runs narrow. We instead use inference that
-is exact at n = 11:
+band-pass, which spreads information +/-70 days. Sub-season blocks are therefore NOT
+independent -- resampling them would treat dependent samples as independent and would be
+anticonservative -- so the only defensible block is a whole winter. Resampling whole winters
+is legitimate (it is what bootstrap_ew_season.py does for the spectral metric in Table 2),
+but with only 11 blocks a percentile bootstrap is imprecise and its coverage is poorly
+calibrated. We therefore prefer inference that is exact at n = 11:
   * an exact two-sided binomial SIGN TEST over the 11 winters (each winter regressed on its
     own index, so the winters are independent realizations of the same statistic), and
   * a leave-one-winter-out JACKKNIFE to show that no single winter carries the result.
-The block bootstrap is still reported for comparison, flagged as anticonservative.
+The winter-block bootstrap is still reported for comparison, flagged as imprecise at n = 11.
 
 METRICS (all from the 700-1000 hPa mass-weighted layer mean, regressed on the standardized
 Indian Ocean precipitation index, per index standard deviation):
@@ -192,7 +194,7 @@ def main():
         P(f"   sign test   = {k}/{NS} winters, p = {p:.4f}{flag}")
         P(f"   jackknife   = [{min(jk):+.4g}, {max(jk):+.4g}]  sign stable: "
           f"{all(np.sign(v) == np.sign(full[key]) for v in jk)}")
-        P(f"   block boot  = 90% CI [{lo:+.4g}, {hi:+.4g}]  (n=11 blocks; anticonservative)")
+        P(f"   block boot  = 90% CI [{lo:+.4g}, {hi:+.4g}]  (n=11 blocks; imprecise)")
         P("")
     P("Kinetic-energy timescale")
     P("-" * 78)

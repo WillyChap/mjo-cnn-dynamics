@@ -5,7 +5,7 @@ compute_structural_metrics.py
 Objective structural metrics that replace subjective "closer to ERA5" visual
 claims with numbers, for the MJO regression-map panels built by make_panels.py.
 
-For each MAP diagnostic (blmc925, u850, diah700, conindex, and v700 if present)
+For each MAP diagnostic (blmc925, u850, diah700, conindex, precip)
 the band-pass-filtered field is regressed onto the equatorial Indian-Ocean
 precipitation index EXACTLY as in make_panels.py (load_slopes / reg_coef_n are
 imported and reused, so the regression is identical). For each model experiment
@@ -45,7 +45,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # Map diagnostics to score (subset of make_panels DIAGNOSTICS that are true maps)
-MAP_DIAGS = ["blmc925", "u850", "diah700", "conindex", "v700"]
+MAP_DIAGS = ["blmc925", "u850", "diah700", "conindex", "precip"]
 
 # Model experiments (exclude obs entry) and the obs entry, from make_panels.
 OBS_EXP = next(e for e in EXPERIMENTS if e["obs"])
