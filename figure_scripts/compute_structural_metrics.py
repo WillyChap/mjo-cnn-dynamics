@@ -117,11 +117,16 @@ def pattern_metrics(model, obs, lons, lats):
     return unc, cen, nrmse, amp_ratio
 
 
-def positive_centroid_lon(field, lons, lats):
-    """Amplitude-weighted mean longitude of positive values over 10S-10N,
-    40-180E (cos-lat weighted)."""
+def signed_centroid_lon(field, lons, lats, sign=+1):
+    """Amplitude-weighted mean longitude of the values of the given `sign` over
+    10S-10N, 40-180E (cos-lat weighted).
+
+    sign=+1 locates the positive anomaly (e.g. the Rossby-like westerly of u850, or
+    the instability band of the theta_e index). sign=-1 locates the negative anomaly
+    (e.g. the Kelvin-like easterly of u850), which is the structure the trio-interaction
+    chain places east of the convective center."""
     la, lo = _domain_mask(lons, lats, EQ_LATMIN, EQ_LATMAX)
-    sub = field[np.ix_(la, lo)].astype(float)
+    sub = field[np.ix_(la, lo)].astype(float) * sign
     lon_sub = lons[lo]
     lat_sub = lats[la]
     w = np.broadcast_to(_weights2d(lat_sub), sub.shape)
@@ -133,6 +138,14 @@ def positive_centroid_lon(field, lons, lats):
     return (lon2d[pos] * wp).sum() / wp.sum()
 
 
+def positive_centroid_lon(field, lons, lats):
+    return signed_centroid_lon(field, lons, lats, sign=+1)
+
+
+def negative_centroid_lon(field, lons, lats):
+    return signed_centroid_lon(field, lons, lats, sign=-1)
+
+
 # ----------------------------------------------------------------------------
 # Build the table
 # ----------------------------------------------------------------------------
@@ -141,7 +154,7 @@ def build_map_table():
     exp_labels = {e["key"]: e["label"].split(")")[-1].strip() for e in EXPERIMENTS}
 
     header = (f"{'diag':<9} {'exp':<6} {'unc_corr':>9} {'cen_corr':>9} "
-              f"{'norm_RMSE':>9} {'amp_ratio':>9} {'centroid_lon':>12}")
+              f"{'norm_RMSE':>9} {'amp_ratio':>9} {'centroid_lon':>12} {'centroid_neg':>13}")
     results = {}   # diag -> dict
 
     for diag in MAP_DIAGS:
@@ -155,12 +168,13 @@ def build_map_table():
             continue
         obs_sl, olons, olats = obs
         obs_centroid = positive_centroid_lon(obs_sl, olons, olats)
+        obs_centroid_neg = negative_centroid_lon(obs_sl, olons, olats)
 
         block = [header]
         # ERA5 reference row (self-correlation is 1 by construction; show centroid)
         block.append(f"{diag:<9} {'ERA5':<6} {1.0:9.3f} {1.0:9.3f} "
-                     f"{0.0:9.3f} {1.0:9.3f} {obs_centroid:12.1f}")
-        rows = {"ERA5": dict(centroid=obs_centroid)}
+                     f"{0.0:9.3f} {1.0:9.3f} {obs_centroid:12.1f} {obs_centroid_neg:13.1f}")
+        rows = {"ERA5": dict(centroid=obs_centroid, centroid_neg=obs_centroid_neg)}
         for exp in MODEL_EXPS:
             got = slopes_for(exp, cfg)
             if got is None:
@@ -174,11 +188,13 @@ def build_map_table():
                 continue
             unc, cen, nrmse, amp = pattern_metrics(msl, obs_sl, mlons, mlats)
             cen_lon = positive_centroid_lon(msl, mlons, mlats)
+            cen_lon_neg = negative_centroid_lon(msl, mlons, mlats)
             block.append(f"{diag:<9} {exp_labels[exp['key']]:<6} "
                          f"{unc:9.3f} {cen:9.3f} {nrmse:9.3f} {amp:9.3f} "
-                         f"{cen_lon:12.1f}")
+                         f"{cen_lon:12.1f} {cen_lon_neg:13.1f}")
             rows[exp_labels[exp["key"]]] = dict(
-                unc=unc, cen=cen, nrmse=nrmse, amp=amp, centroid=cen_lon)
+                unc=unc, cen=cen, nrmse=nrmse, amp=amp, centroid=cen_lon,
+                centroid_neg=cen_lon_neg)
         results[diag] = rows
         lines.append("\n".join(block))
         lines.append("")
@@ -247,7 +263,8 @@ def main():
             "unc_corr=uncentered pattern corr; cen_corr=centered pattern corr; "
             "norm_RMSE=centered RMSE / ERA5 spatial std;",
             "amp_ratio=model spatial std / ERA5 spatial std (>1 = overshoot); "
-            "centroid_lon=amp-weighted lon of positive anomaly 10S-10N.",
+            "centroid_lon=amp-weighted lon of positive anomaly 10S-10N; "
+            "centroid_neg=same for the negative anomaly (e.g. the u850 Kelvin-like easterly).",
             "", table]
     out_text = "\n".join(full)
 
