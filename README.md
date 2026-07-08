@@ -43,12 +43,20 @@ conda run --no-capture-output -p $E python figure_scripts/fig_hovmoller.py
 conda run --no-capture-output -p $E python figure_scripts/fig_heating_vstruct.py
 conda run --no-capture-output -p $E python figure_scripts/fig_ept_vstruct.py
 conda run --no-capture-output -p $E python figure_scripts/fig_condheat_append.py
+conda run --no-capture-output -p $E python figure_scripts/fig_increment.py   # needs INC_SUBSET, see How_To.md
 ```
 
 Quantitative results: `compute_structural_metrics.py` (Table 3, pattern correlation and
 normalized centered RMSE vs ERA5), `bootstrap_ew_season.py` (Table 2, the eastward:westward
-spectral-power ratio and its 90% winter-block-bootstrap CI), and `compute_kr_boxes.py` (the
-fragility check on the Kelvin/Rossby amplitude ratio).
+spectral-power ratio and its 90% winter-block-bootstrap CI), `compute_kr_boxes.py` (the
+fragility check on the Kelvin/Rossby amplitude ratio), and `compute_increment_metrics.py`
+(Sect. 3.5, what the applied CNN wind increment does to the MJO, with an exact per-winter
+sign test rather than a block bootstrap; see `How_To.md` for why).
+
+`fig_increment.py` is the one diagnostic of the **correction** rather than of the model's
+response: it regresses the applied CNN wind tendency onto the MJO precipitation index. It reads
+the CNN experiment's pressure-level timeseries directly (not the NCL products) and needs an
+`ncks` subset first; `How_To.md` gives the exact command.
 
 ## Data
 

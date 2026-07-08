@@ -1,0 +1,54 @@
+Increment metrics: what the CNN wind correction does to the MJO
+==============================================================================
+source            : inc_subset.nc
+winters           : 11 (1979--1989), 180-day seasons from 1 Nov
+layer             : 700-1000 hPa mass-weighted mean
+index             : 20-70d band-pass precip, 80-100E, -10-10N, standardized
+
+Per-winter values (each winter regressed on its own standardized index)
+  winter    conv_E    conv_W        work   prop (1e-8)
+    1979    +0.297    -0.581     +0.0085        -1.918
+    1980    +0.844    -0.094     +0.0184        -3.037
+    1981    +0.398    -0.873     +0.0312        -2.801
+    1982    +0.604    -0.422     +0.0285        -5.812
+    1983    +0.459    -0.411     -0.0102        -2.532
+    1984    +0.705    -0.395     +0.0684        -2.977
+    1985    +0.756    -0.194     +0.0141        -2.282
+    1986    +0.085    -0.345     +0.0274        +0.349
+    1987    +0.720    -0.427     +0.0752        -6.951
+    1988    +0.236    -0.319     +0.0220        +0.457
+    1989    +0.499    -0.182     +0.0135        -2.315
+
+Full-record value, exact two-sided binomial sign test over the 11 winters,
+and leave-one-winter-out jackknife range
+------------------------------------------------------------------------------
+convergence east of convection (100-130E)  > 0
+   full record = +0.5206
+   sign test   = 11/11 winters, p = 0.0010
+   jackknife   = [+0.4868, +0.5658]  sign stable: True
+   block boot  = 90% CI [+0.3999, +0.6275]  (n=11 blocks; anticonservative)
+
+divergence  west of convection (55-80E)    < 0
+   full record = -0.3689
+   sign test   = 11/11 winters, p = 0.0010
+   jackknife   = [-0.3977, -0.3359]  sign stable: True
+   block boot  = 90% CI [-0.4562, -0.2887]  (n=11 blocks; anticonservative)
+
+increment work on the MJO circulation      > 0
+   full record = +0.02296
+   sign test   = 10/11 winters, p = 0.0117
+   jackknife   = [+0.01777, +0.02605]  sign stable: True
+   block boot  = 90% CI [+0.0122, +0.03575]  (n=11 blocks; anticonservative)
+
+eastward displacement tendency             < 0
+   full record = -1.319e-08
+   sign test   = 9/11 winters, p = 0.0654   [NOT significant at 5%]
+   jackknife   = [-1.437e-08, -1.238e-08]  sign stable: True
+   block boot  = 90% CI [-2.007e-08, -9.924e-09]  (n=11 blocks; anticonservative)
+
+MJO circulation variance <|V'|^2> = 0.3054 m2 s-2 per (index sd)^2
+implied kinetic-energy e-folding amplification time = 6.6 days
+
+Units: conv_E/conv_W in 1e-6 s^-1 day^-1; work in m2 s-2 day-1 per (index sd)^2;
+prop in m s-2 day-1 per (index sd)^2. Box means use the Gauss theorem on the box
+boundary, so interior grid-scale noise in the increment cancels.
