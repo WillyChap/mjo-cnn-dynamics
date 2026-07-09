@@ -10,24 +10,15 @@ comparing a control (CNTRL), a climatological correction (MEAN), and the combine
 ## Repository layout
 
 ```
-manuscript/        LaTeX source (manuscript.tex, references.bib, Copernicus class), final figures/
 figure_scripts/    Python figure builders + the metric/bootstrap analysis scripts
 ncl/               NCL diagnostics that produce the regressed NetCDF products
 run/               PBS drivers that run the NCL diagnostics per experiment
 lib/               Python helpers (lanczos_filter.py, DIAH.py)
 third_party/       Vendored Wheeler–Kiladis package (wk_spectra; see its LICENSE)
-How_To.md          Full reproduction guide (data locations, per-figure recipes, PBS drivers)
 ```
 
-**Start with `How_To.md`** — it documents every figure, the exact data paths, and the
-regeneration drivers.
-
-## Build the manuscript
-
-```bash
-cd manuscript
-latexmk -pdf -bibtex manuscript.tex
-```
+The manuscript source and the internal reproduction guide are kept outside this repository
+while the paper is under preparation. This repository holds the analysis and figure code.
 
 ## Reproduce the figures
 
@@ -43,25 +34,36 @@ conda run --no-capture-output -p $E python figure_scripts/fig_hovmoller.py
 conda run --no-capture-output -p $E python figure_scripts/fig_heating_vstruct.py
 conda run --no-capture-output -p $E python figure_scripts/fig_ept_vstruct.py
 conda run --no-capture-output -p $E python figure_scripts/fig_condheat_append.py
-conda run --no-capture-output -p $E python figure_scripts/fig_increment.py   # needs INC_SUBSET, see How_To.md
+conda run --no-capture-output -p $E python figure_scripts/fig_increment.py   # needs the INC_SUBSET file
 ```
 
 Quantitative results: `compute_structural_metrics.py` (Table 3, pattern correlation and
 normalized centered RMSE vs ERA5), `bootstrap_ew_season.py` (Table 2, the eastward:westward
 spectral-power ratio and its 90% winter-block-bootstrap CI), `compute_kr_boxes.py` (the
 fragility check on the Kelvin/Rossby amplitude ratio), and `compute_increment_metrics.py`
-(Sect. 3.5, what the applied CNN wind increment does to the MJO, with an exact per-winter
-sign test rather than a block bootstrap; see `How_To.md` for why).
+(Sect. 3.5, what the applied CNN wind increment does to the MJO; with only eleven winters it
+reports an exact per-winter sign test and a leave-one-winter-out jackknife rather than relying
+on a block bootstrap).
 
-`fig_increment.py` is the one diagnostic of the **correction** rather than of the model's
-response: it regresses the applied CNN wind tendency onto the MJO precipitation index. It reads
-the CNN experiment's pressure-level timeseries directly (not the NCL products) and needs an
-`ncks` subset first; `How_To.md` gives the exact command.
+`fig_increment.py` is the one diagnostic of the correction itself rather than of the model's
+response: it regresses the applied CNN wind tendency (`cb24cnn_U`, `cb24cnn_V`, archived only in
+the fullCNN experiment) onto the MJO precipitation index. It reads the CNN experiment's
+pressure-level timeseries directly, not the NCL products, and needs an `ncks` subset first:
+
+```bash
+module load nco
+ncks -O -4 -L1 -v cb24cnn_U,cb24cnn_V,U,V,PRECT \
+     -d lat,-25.0,25.0 -d lon,40.0,220.0 -d level,9,12 \
+     /glade/campaign/cgd/amp/wchapman/ADF/f.e.FTORCHmjo_fullCNN_DT2/ts/f.e.FTORCHmjo_fullCNN_DT2.cam.h1.NC4_Classic.plev.mjo.1979010100000-1990123100000.nc \
+     inc_subset.nc
+export INC_SUBSET=$PWD/inc_subset.nc
+```
 
 ## Data
 
-The large NetCDF products are **not** included; they are regenerated from source data on the
-NCAR GLADE filesystem by the NCL drivers in `run/` (see `How_To.md` for paths and PBS usage).
+The large NetCDF products are not included; they are regenerated from source data on the
+NCAR GLADE filesystem by the PBS drivers in `run/`, which export the data paths each NCL
+diagnostic expects.
 The model output, the trained CNN, and the FTorch coupling follow Chapman and Berner (2025);
 ERA5 is from the ECMWF/Copernicus Climate Data Store; the prescribed SST/sea-ice boundary
 condition is the standard CESM2/CAM6 merged dataset (Hurrell et al., 2008).

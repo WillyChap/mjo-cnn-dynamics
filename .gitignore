@@ -10,6 +10,10 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
+# Manuscript: kept locally, not distributed with the code
+manuscript/
+How_To.md
+
 # LaTeX build artifacts
 *.aux
 *.log
@@ -20,7 +24,6 @@ __pycache__/
 *.synctex.gz
 *.fdb_latexmk
 *.fls
-manuscript/manuscript.pdf
 
 # Editor / OS
 .DS_Store
